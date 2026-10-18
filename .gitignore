@@ -1,0 +1,25 @@
+# Python虚拟环境
+venv/
+.venv/
+env/
+
+# Chroma向量库本地数据
+chroma_db/
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 临时文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# IDE配置
+.vscode/
+.idea/
+
+# 系统文件
+Thumbs.db
