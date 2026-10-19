@@ -1,25 +1,8 @@
-# Python虚拟环境
-venv/
-.venv/
-env/
-
-# Chroma向量库本地数据
-chroma_db/
-
-# 数据库文件
-*.db
-*.sqlite
-
-# 临时文件
+﻿venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.DS_Store
-
-# IDE配置
-.vscode/
-.idea/
-
-# 系统文件
-Thumbs.db
+*.db
+408_vectordb.json
+chroma_db/
+*.txt
+test_*.py
