@@ -5,6 +5,8 @@ Flask后端：本地408 RAG问答Web服务
 """
 import os
 import sqlite3
+import json
+import random
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template
 from langchain_ollama import OllamaEmbeddings, ChatOllama
@@ -27,6 +29,18 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             question TEXT NOT NULL,
             answer TEXT NOT NULL,
+            create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    # 新增错题表
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS wrong_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT NOT NULL,
+            options TEXT NOT NULL,
+            correct_answer TEXT NOT NULL,
+            user_answer TEXT NOT NULL,
+            knowledge_point TEXT,
             create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -108,6 +122,63 @@ def history():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT question, answer, create_time FROM chat_records ORDER BY id DESC LIMIT 20")
+    records = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify({"records": records})
+
+# ===== 刷题相关接口 =====
+@app.route("/api/generate-quiz")
+def generate_quiz():
+    # 随机抽一个知识点，生成一道408单选题
+    random_doc = random.choice(vector_db.documents)
+    quiz_prompt = f"""
+    根据下面这个408知识点，出一道单选题，题目要考察核心考点，不要出偏题。
+    严格输出JSON格式，不要输出任何其他解释文字，格式如下：
+    {{
+        "question": "题目内容",
+        "options": {{"A": "选项A内容", "B": "选项B内容", "C": "选项C内容", "D": "选项D内容"}},
+        "correct_answer": "正确选项的字母（A/B/C/D）",
+        "knowledge_point": "这个题对应的知识点名称"
+    }}
+    知识点内容：{random_doc[:300]}
+    """
+    raw_result = llm.invoke(quiz_prompt).content
+    # 清洗模型输出的markdown包裹
+    raw_result = raw_result.replace("```json", "").replace("```", "").strip()
+    try:
+        quiz = json.loads(raw_result)
+        return jsonify(quiz)
+    except:
+        return jsonify({"error": "题目生成失败，请重试"}), 500
+
+@app.route("/api/submit-quiz", methods=["POST"])
+def submit_quiz():
+    data = request.get_json()
+    question = data.get("question")
+    options = data.get("options")
+    correct_answer = data.get("correct_answer")
+    user_answer = data.get("user_answer")
+    knowledge_point = data.get("knowledge_point", "")
+    is_correct = (user_answer == correct_answer)
+    # 如果答错了，存到错题表
+    if not is_correct:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO wrong_questions (question, options, correct_answer, user_answer, knowledge_point) VALUES (?, ?, ?, ?, ?)",
+            (question, json.dumps(options, ensure_ascii=False), correct_answer, user_answer, knowledge_point)
+        )
+        conn.commit()
+        conn.close()
+    return jsonify({"is_correct": is_correct, "correct_answer": correct_answer})
+
+@app.route("/api/wrong-list")
+def wrong_list():
+    # 查询所有错题
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM wrong_questions ORDER BY id DESC")
     records = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify({"records": records})
