@@ -38,16 +38,16 @@ init_db()
 # 初始化模型和向量库（启动时加载一次）
 print("正在加载模型和知识库，请稍等...")
 embeddings = OllamaEmbeddings(model="bge-m3")
-llm = ChatOllama(model="qwen2.5:7b", temperature=0.3)
+llm = ChatOllama(model="qwen2.5:7b", temperature=0.3, num_predict=400)
 vector_store = Chroma(
     collection_name="408_knowledge",
     embedding_function=embeddings,
     persist_directory=CHROMA_DIR
 )
 prompt = ChatPromptTemplate.from_template("""
-你是考研408专业课辅导助手，必须严格根据下面提供的参考资料回答用户问题。
-如果参考资料里没有相关内容，就直接说"知识库中暂时没有这部分内容"，不要编造答案。
-回答要简洁准确，适合考研复习场景。
+你是考研408专业课的辅导老师，严格根据参考资料回答问题，不要瞎编资料里没有的内容。如果参考资料里没有，就说"知识库中暂时没有这部分内容"。
+
+回答紧凑有层次：先给核心结论，再简单讲清楚原理和关键性质，最后补1-2句常考易错点，不要写多余的废话，不要过度展开，控制在300字左右。
 
 参考资料：
 {context}
@@ -73,8 +73,11 @@ def chat():
     data = request.get_json()
     question = data.get("question", "").strip()
     if not question:
-        return jsonify({"answer": "请输入问题"}), 400
+        return jsonify({"answer": "请输入问题", "elapsed_time": 0}), 400
+    import time
+    start_time = time.time()
     answer = rag_chain.invoke(question)
+    elapsed_time = round(time.time() - start_time, 1)
     # 自动把问答记录存进数据库
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -84,7 +87,7 @@ def chat():
     )
     conn.commit()
     conn.close()
-    return jsonify({"answer": answer})
+    return jsonify({"answer": answer, "elapsed_time": elapsed_time})
 
 @app.route("/api/history")
 def history():
@@ -98,4 +101,4 @@ def history():
     return jsonify({"records": records})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=80, debug=False, threaded=True)
