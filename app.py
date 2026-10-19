@@ -65,8 +65,18 @@ if len(vector_db.documents) == 0:
         if filename.endswith(".md"):
             with open(os.path.join(knowledge_dir, filename), "r", encoding="utf-8") as f:
                 content = f.read()
-                paragraphs = [p.strip() for p in content.split("\n\n") if len(p.strip()) > 20]
-                all_texts.extend(paragraphs)
+                # 先按行切，再按100字左右合并成小片段，比之前大段落切分更细
+                lines = [line.strip() for line in content.split("\n") if line.strip() and line.strip().startswith("-")]
+                buffer = ""
+                for line in lines:
+                    if len(buffer) + len(line) < 120:
+                        buffer += line + " "
+                    else:
+                        if buffer.strip():
+                            all_texts.append(buffer.strip())
+                        buffer = line + " "
+                if buffer.strip():
+                    all_texts.append(buffer.strip())
     vector_db.add_texts(all_texts)
     vector_db.save()
 
