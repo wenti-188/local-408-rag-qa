@@ -80,16 +80,18 @@ def chat():
 
     def generate():
         full_answer = ""
-        # 调用流式生成
-        context = "\n---\n".join([doc for doc, score in vector_db.search(question, top_k=4)])
-        messages = [
-            {"role": "system", "content": "你是408考研辅导老师，严格根据参考资料回答：如果用户问的是具体年份题号的真题，优先直接列出召回的题目、选项、答案和解析，不要反问用户要题目内容；如果用户问的是知识点问题，先给核心结论，再讲原理和易错点，控制在250字内，不要瞎编参考资料里没有的内容。参考资料：" + context},
-            {"role": "user", "content": question}
-        ]
-        for chunk in llm.stream(messages):
-            token = chunk.content
-            full_answer += token
-            yield token
+        try:
+            context = "\n---\n".join([doc for doc, score in vector_db.search(question, top_k=4)])
+            messages = [
+                {"role": "system", "content": "你是408考研辅导老师，严格根据参考资料回答：如果用户问的是具体年份题号的真题，优先直接列出召回的题目、选项、答案和解析，不要反问用户要题目内容；如果用户问的是知识点问题，先给核心结论，再讲原理和易错点，控制在250字内，不要瞎编参考资料里没有的内容。参考资料：" + context},
+                {"role": "user", "content": question}
+            ]
+            for chunk in llm.stream(messages):
+                token = chunk.content
+                full_answer += token
+                yield token
+        except Exception as e:
+            yield "⚠️ 本地大模型未启动，请先打开Ollama客户端再试。"
         elapsed = round(time.time() - start_time, 1)
         # 存数据库
         conn = sqlite3.connect(DB_PATH)
