@@ -92,7 +92,6 @@
         <p>纯本地运行 · 问答刷题一体</p>
         <div class="func-bar">
             <button class="func-btn" onclick="startQuiz()">开始刷题</button>
-            <button class="func-btn" onclick="showWrongList()">错题本</button>
         </div>
     </div>
     <div class="chat-container" id="chat-container"></div>
@@ -171,8 +170,14 @@
 
         async function startQuiz() {
             sendBtn.disabled = true;
+            const loadingTip = document.createElement('div');
+            loadingTip.className = 'message ai-message';
+            loadingTip.innerHTML = `<div class="message-bubble">正在调用大模型生成题目，请等待15-20秒...</div>`;
+            chatContainer.appendChild(loadingTip);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
             try {
                 const res = await fetch('/api/generate-quiz');
+                loadingTip.remove();
                 currentQuiz = await res.json();
                 if (currentQuiz.error) { alert("题目生成失败，请重试"); return; }
                 const quizDiv = document.createElement('div');
@@ -206,6 +211,7 @@
 
         async function submitQuiz() {
             if (!selectedOpt) { alert("请先选一个选项"); return; }
+            document.getElementById('submit-quiz-btn').disabled = true;
             const res = await fetch('/api/submit-quiz', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -214,38 +220,17 @@
                     options: currentQuiz.options,
                     correct_answer: currentQuiz.correct_answer,
                     user_answer: selectedOpt,
-                    knowledge_point: currentQuiz.knowledge_point
+                    explanation: currentQuiz.explanation
                 })
             });
             const result = await res.json();
             const resultDiv = document.getElementById('quiz-result');
             if (result.is_correct) {
-                resultDiv.innerHTML = `<div class="correct">✅ 回答正确！</div>`;
+                resultDiv.innerHTML = `<div class="correct">✅ 回答正确！</div><div style="margin-top:8px; font-size:14px; color:#555">📖 解析：${currentQuiz.explanation}</div>`;
             } else {
-                resultDiv.innerHTML = `<div class="wrong">❌ 回答错误，正确答案是 ${result.correct_answer}，已加入错题本</div>`;
+                resultDiv.innerHTML = `<div class="wrong">❌ 回答错误，正确答案是 ${result.correct_answer}</div><div style="margin-top:8px; font-size:14px; color:#555">📖 解析：${currentQuiz.explanation}</div>`;
             }
-            document.getElementById('submit-quiz-btn').disabled = true;
             selectedOpt = null;
-        }
-
-        async function showWrongList() {
-            const res = await fetch('/api/wrong-list');
-            const data = await res.json();
-            const wrongDiv = document.createElement('div');
-            wrongDiv.className = 'quiz-card';
-            let html = `<h3>错题本（共 ${data.records.length} 道错题）</h3>`;
-            data.records.forEach((item, idx) => {
-                html += `<div style="margin:12px 0; padding:12px; border-top:1px solid #eee;">
-                    <p><strong>${idx+1}. ${item.question}</strong></p>
-                    <p style="color:#999; font-size:13px; margin-top:4px">知识点：${item.knowledge_point}</p>
-                    <p style="color:#ef4444; margin-top:4px">你的答案：${item.user_answer}</p>
-                    <p style="color:#22c55e">正确答案：${item.correct_answer}</p>
-                </div>`;
-            });
-            if (data.records.length === 0) html += `<p style="color:#999">还没有错题，继续加油！</p>`;
-            wrongDiv.innerHTML = html;
-            chatContainer.appendChild(wrongDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
         sendBtn.addEventListener('click', sendQuestion);

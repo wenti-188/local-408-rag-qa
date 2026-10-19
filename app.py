@@ -132,13 +132,13 @@ def generate_quiz():
     # 随机抽一个知识点，生成一道408单选题
     random_doc = random.choice(vector_db.documents)
     quiz_prompt = f"""
-    根据下面这个408知识点，出一道单选题，题目要考察核心考点，不要出偏题。
+    根据下面这个408知识点，出一道单选题，题目要考察核心考点，不要出偏题，同时写一句简短的解析说明正确答案为什么对。
     严格输出JSON格式，不要输出任何其他解释文字，格式如下：
     {{
         "question": "题目内容",
         "options": {{"A": "选项A内容", "B": "选项B内容", "C": "选项C内容", "D": "选项D内容"}},
         "correct_answer": "正确选项的字母（A/B/C/D）",
-        "knowledge_point": "这个题对应的知识点名称"
+        "explanation": "简短的解析说明，讲清楚正确答案的原理"
     }}
     知识点内容：{random_doc[:300]}
     """
@@ -154,23 +154,11 @@ def generate_quiz():
 @app.route("/api/submit-quiz", methods=["POST"])
 def submit_quiz():
     data = request.get_json()
-    question = data.get("question")
-    options = data.get("options")
     correct_answer = data.get("correct_answer")
     user_answer = data.get("user_answer")
-    knowledge_point = data.get("knowledge_point", "")
+    explanation = data.get("explanation", "")
     is_correct = (user_answer == correct_answer)
-    # 如果答错了，存到错题表
-    if not is_correct:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO wrong_questions (question, options, correct_answer, user_answer, knowledge_point) VALUES (?, ?, ?, ?, ?)",
-            (question, json.dumps(options, ensure_ascii=False), correct_answer, user_answer, knowledge_point)
-        )
-        conn.commit()
-        conn.close()
-    return jsonify({"is_correct": is_correct, "correct_answer": correct_answer})
+    return jsonify({"is_correct": is_correct, "correct_answer": correct_answer, "explanation": explanation})
 
 @app.route("/api/wrong-list")
 def wrong_list():
