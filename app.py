@@ -35,15 +35,27 @@ def init_db():
 
 init_db()
 
-# 初始化模型和向量库（启动时加载一次）
+# 初始化模型和我们自己手写的迷你向量库（启动时加载一次）
 print("正在加载模型和知识库，请稍等...")
-embeddings = OllamaEmbeddings(model="bge-m3")
+from minivectordb import MiniVectorDB
+import os
 llm = ChatOllama(model="qwen2.5:7b", temperature=0.3, num_predict=400)
-vector_store = Chroma(
-    collection_name="408_knowledge",
-    embedding_function=embeddings,
-    persist_directory=CHROMA_DIR
-)
+vector_db = MiniVectorDB(storage_file="408_vectordb.json")
+
+# 如果库是空的，自动导入知识库文件
+if len(vector_db.documents) == 0:
+    print("首次运行，正在导入408知识点到自定义向量库...")
+    knowledge_dir = os.path.join(BASE_DIR, "knowledge")
+    all_texts = []
+    for filename in os.listdir(knowledge_dir):
+        if filename.endswith(".md"):
+            with open(os.path.join(knowledge_dir, filename), "r", encoding="utf-8") as f:
+                content = f.read()
+                paragraphs = [p.strip() for p in content.split("\n\n") if len(p.strip()) > 20]
+                all_texts.extend(paragraphs)
+    vector_db.add_texts(all_texts)
+    vector_db.save()
+
 prompt = ChatPromptTemplate.from_template("""
 你是考研408专业课的辅导老师，严格根据参考资料回答问题，不要瞎编资料里没有的内容。如果参考资料里没有，就说"知识库中暂时没有这部分内容"。
 
@@ -56,13 +68,13 @@ prompt = ChatPromptTemplate.from_template("""
 回答：
 """)
 rag_chain = (
-    {"context": lambda q: "\n---\n".join([doc.page_content for doc in vector_store.similarity_search(q, k=3)]),
+    {"context": lambda q: "\n---\n".join([doc for doc, score in vector_db.search(q, top_k=3)]),
      "question": lambda q: q}
     | prompt
     | llm
     | StrOutputParser()
 )
-print("✅ 服务加载完成，访问 http://localhost:5000 即可使用")
+print("✅ 服务加载完成，访问 http://localhost 即可使用")
 
 @app.route("/")
 def index():
