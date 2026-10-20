@@ -3,60 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算机离线复习助手</title>
+    <title>计算机复习助手</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
         :root {
-            --bg: #f0f0f2;
-            --sidebar: #ffffff;
-            --card-bg: #f7f7f9;
-            --border: #e8e8eb;
-            --border-light: #f0f0f2;
-            --text: #1a1d21;
-            --text-2: #5c626b;
-            --text-3: #8a9099;
-            --user-bubble: #1a1d21;
+            --bg: #ffffff;
+            --sidebar: #f7f7f8;
+            --border: #e5e5e7;
+            --text: #1f2329;
+            --text-2: #646a73;
+            --text-3: #8f959e;
+            --user-bubble: #1f2329;
             --hover: #f2f3f5;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-            --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
-            --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+            --shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
         body { background: var(--bg); color: var(--text); height:100vh; display:flex; overflow:hidden; }
 
-        /* 左侧边栏 - DeepSeek风格 */
+        /* 左侧边栏 - 豆包风格极简 */
         .sidebar {
-            width: 260px;
+            width: 240px;
             background: var(--sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             padding: 12px;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.03);
-            z-index: 10;
         }
         .new-chat-btn {
             width: 100%;
-            padding: 11px 14px;
+            padding: 10px 14px;
             border: 1px solid var(--border);
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
             text-align: left;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.2s ease;
+            transition: all 0.15s;
             margin-bottom: 16px;
-            box-shadow: var(--shadow-sm);
         }
-        .new-chat-btn:hover {
-            background: var(--hover);
-            box-shadow: var(--shadow-md);
-            transform: translateY(-1px);
-        }
-        .side-section-title {
+        .new-chat-btn:hover { background: var(--hover); }
+        .side-title {
             font-size: 12px;
             color: var(--text-3);
             padding: 0 8px 8px;
@@ -80,7 +68,7 @@
             padding-top: 12px;
             border-top: 1px solid var(--border);
         }
-        .side-footer-btn {
+        .side-btn {
             width: 100%;
             padding: 8px 10px;
             border: none;
@@ -95,121 +83,38 @@
             gap: 10px;
             transition: all 0.15s;
         }
-        .side-footer-btn:hover { background: var(--hover); }
+        .side-btn:hover { background: var(--hover); }
 
-        /* 右侧边栏 */
-        .right-sidebar {
-            width: 260px;
-            background: var(--sidebar);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.03);
-            z-index: 10;
-        }
-        .right-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
-        }
-        .right-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-1px);
-        }
-        .right-card h4 {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text);
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border-light);
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12.5px;
-            color: var(--text-2);
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-light);
-        }
-        .stat-row:last-child { border-bottom: none; }
-        .stat-row .num { font-weight: 600; color: var(--text); }
-        .hot-topic {
-            padding: 7px 10px;
-            border-radius: 6px;
-            font-size: 12.5px;
-            color: var(--text-2);
-            cursor: pointer;
-            margin-bottom: 2px;
-            transition: all 0.15s;
-        }
-        .hot-topic:hover { background: var(--hover); color: var(--text); }
-        .status-box {
-            font-size: 12px;
-            color: var(--text-3);
-            line-height: 1.7;
-        }
-        .status-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #30c050;
-            margin-right: 6px;
-        }
-
-        /* 主区域 */
+        /* 主聊天区 - 豆包风格居中 */
         .main {
             flex: 1;
             display: flex;
             flex-direction: column;
             position: relative;
         }
-        .top-bar {
-            padding: 14px 32px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255,255,255,0.8);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            position: relative;
-        }
-        .top-bar-title { font-size: 15px; font-weight: 600; position: absolute; left: 50%; transform: translateX(-50%); }
-        .top-bar-status { font-size: 12px; color: var(--text-3); margin-left: auto; }
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 20px 140px;
+            padding: 40px 20px 140px;
         }
         .chat-container::-webkit-scrollbar { width: 6px; }
         .chat-container::-webkit-scrollbar-thumb { background: #d0d0d5; border-radius: 3px; }
 
-        /* 空状态欢迎页 - DeepSeek风格 */
+        /* 空状态欢迎页 - 豆包风格 */
         .welcome {
             max-width: 720px;
             margin: 100px auto 0;
             text-align: center;
         }
         .welcome h1 {
-            font-size: 34px;
-            font-weight: 700;
-            margin-bottom: 14px;
-            letter-spacing: -0.5px;
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
         .welcome p {
             font-size: 16px;
             color: var(--text-2);
-            margin-bottom: 48px;
-            font-weight: 400;
+            margin-bottom: 40px;
         }
         .suggest-grid {
             display: grid;
@@ -218,18 +123,16 @@
             text-align: left;
         }
         .suggest-card {
-            padding: 18px;
-            background: white;
-            border: 1px solid var(--border-light);
-            border-radius: 14px;
+            padding: 16px;
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
         }
         .suggest-card:hover {
+            background: var(--hover);
             border-color: #d0d0d5;
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
         }
         .suggest-card .card-title {
             font-size: 14px;
@@ -241,7 +144,7 @@
             color: var(--text-3);
         }
 
-        /* 消息气泡 - DeepSeek风格 */
+        /* 消息气泡 - 豆包风格 */
         .msg-wrap {
             max-width: 760px;
             margin: 0 auto 28px;
@@ -269,21 +172,18 @@
         .msg-user .msg-avatar { background: #4e5969; }
         .bubble {
             max-width: 80%;
-            padding: 14px 18px;
-            border-radius: 14px;
-            line-height: 1.75;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.7;
             font-size: 15px;
             white-space: pre-wrap;
         }
         .msg-user .bubble {
             background: var(--user-bubble);
             color: white;
-            box-shadow: var(--shadow-md);
         }
         .msg-ai .bubble {
-            background: white;
-            border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-sm);
+            background: #f7f7f8;
         }
         .elapsed {
             margin-top: 8px;
@@ -291,24 +191,18 @@
             color: var(--text-3);
         }
 
-        /* 输入区 - DeepSeek风格 */
+        /* 输入区 - 豆包风格悬浮 */
         .input-area {
             position: fixed;
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            width: min(720px, calc(100% - 560px));
+            width: min(720px, calc(100% - 280px));
             background: white;
             border: 1px solid var(--border);
-            border-radius: 18px;
-            box-shadow: var(--shadow-lg);
-            padding: 10px;
-            transition: all 0.2s ease;
-            z-index: 100;
-        }
-        .input-area:focus-within {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-            border-color: #d0d0d5;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 8px;
         }
         .input-tools {
             display: flex;
@@ -383,8 +277,7 @@
         .quiz-card {
             max-width: 760px;
             margin: 0 auto 28px;
-            background: white;
-            border: 1px solid var(--border);
+            background: #f7f7f8;
             border-radius: 12px;
             padding: 24px;
         }
@@ -392,6 +285,7 @@
         .opt {
             padding: 11px 14px;
             border: 1px solid var(--border);
+            background: white;
             border-radius: 8px;
             margin: 8px 0;
             cursor: pointer;
@@ -403,7 +297,7 @@
         .quiz-res {
             margin-top: 16px;
             padding: 14px;
-            background: var(--bg);
+            background: white;
             border-radius: 8px;
             font-size: 14px;
             line-height: 1.6;
@@ -417,6 +311,7 @@
             font-size: 13px;
             margin-top: 12px;
         }
+
         /* 关于弹窗 */
         .modal-mask {
             position: fixed;
@@ -434,7 +329,7 @@
             padding: 28px;
             width: 480px;
             max-width: 90%;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow);
         }
         .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
         .modal p { font-size: 14px; line-height: 1.7; color: var(--text-2); margin-bottom: 10px; }
@@ -450,12 +345,7 @@
             float: right;
         }
 
-        /* 响应式适配：中小屏幕隐藏右侧边栏 */
-        @media (max-width: 1200px) {
-            .right-sidebar { display: none; }
-            .input-area { width: min(720px, calc(100% - 300px)); }
-        }
-        /* 小屏幕隐藏左侧边栏 */
+        /* 响应式 */
         @media (max-width: 900px) {
             .sidebar { display: none; }
             .input-area { width: 92%; }
@@ -469,24 +359,23 @@
     <!-- 左侧边栏 -->
     <div class="sidebar">
         <button class="new-chat-btn" onclick="newChat()">
-            <span>✏️</span> 新建对话
+            <span>✏️</span> 新对话
         </button>
-        <div class="side-section-title">最近对话</div>
+        <div class="side-title">历史对话</div>
         <div class="history-item" onclick="quickAsk('请详细解释进程和线程的核心区别以及各自的适用场景')">进程与线程的核心区别</div>
-        <div class="history-item" onclick="quickAsk('请解释TCP三次握手和四次挥手的完整过程，为什么需要三次握手')">TCP三次握手过程详解</div>
+        <div class="history-item" onclick="quickAsk('请解释TCP三次握手和四次挥手的完整过程')">TCP三次握手过程详解</div>
         <div class="history-item" onclick="quickAsk('请对比B树和B+树的差异，以及各自的适用场景')">B树和B+树的差异</div>
         <div class="history-item" onclick="quickAsk('请解释数据库事务ACID特性的具体含义')">数据库事务ACID特性</div>
-        <div class="history-item" onclick="quickAsk('请解析2025年408真题第10题，给出答案和详细解析')">2025年408真题第10题解析</div>
         <div class="history-item" onclick="quickAsk('请讲解Java HashMap的底层原理和扩容机制')">Java HashMap底层原理</div>
 
         <div class="side-footer">
-            <button class="side-footer-btn" onclick="startQuiz()">
+            <button class="side-btn" onclick="startQuiz()">
                 <span>📝</span> 开始刷题
             </button>
-            <button class="side-footer-btn" onclick="window.open('http://localhost:8000','_blank')">
+            <button class="side-btn" onclick="window.open('http://localhost:8000','_blank')">
                 <span>⚙️</span> API控制台
             </button>
-            <button class="side-footer-btn" onclick="showAbout()">
+            <button class="side-btn" onclick="showAbout()">
                 <span>ℹ️</span> 关于本项目
             </button>
         </div>
@@ -494,10 +383,6 @@
 
     <!-- 主聊天区 -->
     <div class="main">
-        <div class="top-bar">
-            <div class="top-bar-title">计算机专业离线复习助手</div>
-            <div class="top-bar-status">v1.0 · 完全离线运行</div>
-        </div>
         <div class="chat-container" id="chat">
             <div class="welcome" id="welcome">
                 <h1>你好，我是你的计算机复习助手</h1>
@@ -537,38 +422,7 @@
         </div>
     </div>
 
-    <!-- 右侧边栏 -->
-    <div class="right-sidebar">
-        <div class="right-card">
-            <h4>📊 知识库概览</h4>
-            <div class="stat-row"><span>知识片段总数</span><span class="num">1820 条</span></div>
-            <div class="stat-row"><span>408核心科目</span><span class="num">4 门</span></div>
-            <div class="stat-row"><span>历年真题覆盖</span><span class="num">2021-2026</span></div>
-            <div class="stat-row"><span>面试高频考点</span><span class="num">已覆盖</span></div>
-            <div class="stat-row"><span>编程语言库</span><span class="num">C/Java/Python</span></div>
-        </div>
-
-        <div class="right-card">
-            <h4>🔥 高频考点</h4>
-            <div class="hot-topic" onclick="quickAsk('请详细解释进程和线程的区别')">进程与线程</div>
-            <div class="hot-topic" onclick="quickAsk('请解释TCP三次握手和四次挥手')">TCP连接管理</div>
-            <div class="hot-topic" onclick="quickAsk('B树和B+树的区别是什么')">B树与B+树</div>
-            <div class="hot-topic" onclick="quickAsk('请解释数据库事务ACID特性')">事务ACID</div>
-            <div class="hot-topic" onclick="quickAsk('HashMap的底层原理是什么')">HashMap原理</div>
-            <div class="hot-topic" onclick="quickAsk('请解释虚拟内存的实现机制')">虚拟内存</div>
-        </div>
-
-        <div class="right-card">
-            <h4>ℹ️ 运行状态</h4>
-            <div class="status-box">
-                <div><span class="status-dot"></span>本地模型运行中</div>
-                <div style="margin-top:4px;">所有数据仅存储在本机</div>
-                <div style="margin-top:4px;">无需联网，无API费用</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 关于项目弹窗 -->
+    <!-- 关于弹窗 -->
     <div class="modal-mask" id="about-modal" onclick="if(event.target===this)this.classList.remove('show')">
         <div class="modal">
             <h3>关于本项目</h3>
