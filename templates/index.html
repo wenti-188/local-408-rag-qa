@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>408本地离线复习助手</title>
+    <title>计算机专业离线复习助手</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family: "微软雅黑", sans-serif; }
         body { background:#fafafa; color:#111; height:100vh; display:flex; flex-direction:column; }
@@ -41,8 +41,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>408本地离线复习助手</h1>
-        <p>纯本地运行 · 问答刷题一体</p>
+        <h1>计算机专业离线复习助手</h1>
+        <p>纯本地运行 · 覆盖408考研/面试八股/编程语言全科目</p>
         <div class="func-bar">
             <button class="func-btn" onclick="startQuiz()">开始刷题</button>
             <a href="http://localhost:8000" target="_blank" style="margin-left:8px;"><button class="func-btn">开发者API</button></a>
@@ -51,7 +51,7 @@
     <div class="chat-container" id="chat-container"></div>
     <div class="input-area">
         <div class="input-wrapper">
-            <input type="text" id="question-input" placeholder="输入408相关问题，回车发送..." autofocus>
+            <input type="text" id="question-input" placeholder="输入计算机相关问题，回车发送..." autofocus>
             <button id="send-btn">发送</button>
         </div>
     </div>
@@ -80,7 +80,7 @@
         }
 
         async function loadHistory() {
-            addMessage("你好！我是你的408复习助手，可以问知识点，也可以点上面的按钮开始刷题。", false);
+            addMessage("你好！我是你的计算机专业复习助手，不管是408考研知识点、互联网面试八股文、编程语言、数据库/Web开发问题都可以问，也可以点上面的按钮开始刷题。", false);
             try {
                 const res = await fetch('/api/history');
                 const data = await res.json();
