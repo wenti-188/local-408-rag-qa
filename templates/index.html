@@ -9,28 +9,32 @@
         :root {
             --bg: #ffffff;
             --sidebar: #f7f7f8;
-            --border: #e5e5e7;
-            --text: #1f2329;
-            --text-2: #646a73;
-            --text-3: #8f959e;
-            --user-bubble: #1f2329;
+            --border: #eceef0;
+            --text: #1d2129;
+            --text-2: #4e5969;
+            --text-3: #86909c;
+            --user-bubble: #1d2129;
+            --ai-bubble: #f7f8fa;
             --hover: #f2f3f5;
-            --shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
         body { background: var(--bg); color: var(--text); height:100vh; display:flex; overflow:hidden; }
 
-        /* 左侧边栏 - 豆包风格极简 */
+        /* 左侧边栏 - 豆包原版 */
         .sidebar {
-            width: 240px;
+            width: 220px;
             background: var(--sidebar);
-            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 12px;
+            padding: 16px 12px;
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            padding: 0 8px 20px;
         }
         .new-chat-btn {
             width: 100%;
-            padding: 10px 14px;
+            padding: 10px 12px;
             border: 1px solid var(--border);
             background: white;
             border-radius: 8px;
@@ -39,9 +43,9 @@
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.15s;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .new-chat-btn:hover { background: var(--hover); }
         .side-title {
@@ -80,12 +84,12 @@
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.15s;
         }
         .side-btn:hover { background: var(--hover); }
 
-        /* 主聊天区 - 豆包风格居中 */
+        /* 主聊天区 - 豆包原版居中 */
         .main {
             flex: 1;
             display: flex;
@@ -95,26 +99,26 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 40px 20px 140px;
+            padding: 40px 20px 160px;
         }
         .chat-container::-webkit-scrollbar { width: 6px; }
         .chat-container::-webkit-scrollbar-thumb { background: #d0d0d5; border-radius: 3px; }
 
-        /* 空状态欢迎页 - 豆包风格 */
+        /* 空状态 - 豆包原版 */
         .welcome {
             max-width: 720px;
-            margin: 100px auto 0;
+            margin: 120px auto 0;
             text-align: center;
         }
         .welcome h1 {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         .welcome p {
             font-size: 16px;
             color: var(--text-2);
-            margin-bottom: 40px;
+            margin-bottom: 48px;
         }
         .suggest-grid {
             display: grid;
@@ -123,8 +127,8 @@
             text-align: left;
         }
         .suggest-card {
-            padding: 16px;
-            background: #fafafa;
+            padding: 18px;
+            background: #fafbfc;
             border: 1px solid var(--border);
             border-radius: 12px;
             cursor: pointer;
@@ -137,17 +141,17 @@
         .suggest-card .card-title {
             font-size: 14px;
             font-weight: 500;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .suggest-card .card-desc {
             font-size: 12.5px;
             color: var(--text-3);
         }
 
-        /* 消息气泡 - 豆包风格 */
+        /* 消息气泡 - 豆包原版 */
         .msg-wrap {
-            max-width: 760px;
-            margin: 0 auto 28px;
+            max-width: 720px;
+            margin: 0 auto 32px;
             display: flex;
             gap: 12px;
             animation: fadeIn 0.25s ease;
@@ -174,7 +178,7 @@
             max-width: 80%;
             padding: 12px 16px;
             border-radius: 12px;
-            line-height: 1.7;
+            line-height: 1.75;
             font-size: 15px;
             white-space: pre-wrap;
         }
@@ -183,7 +187,7 @@
             color: white;
         }
         .msg-ai .bubble {
-            background: #f7f7f8;
+            background: var(--ai-bubble);
         }
         .elapsed {
             margin-top: 8px;
@@ -191,35 +195,19 @@
             color: var(--text-3);
         }
 
-        /* 输入区 - 豆包风格悬浮 */
+        /* 输入区 - 豆包原版大输入框 */
         .input-area {
             position: fixed;
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            width: min(720px, calc(100% - 280px));
+            width: min(720px, calc(100% - 260px));
             background: white;
             border: 1px solid var(--border);
             border-radius: 16px;
-            box-shadow: var(--shadow);
-            padding: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 12px;
         }
-        .input-tools {
-            display: flex;
-            gap: 4px;
-            padding: 4px 8px;
-        }
-        .tool-btn {
-            padding: 5px 10px;
-            border: none;
-            background: transparent;
-            border-radius: 6px;
-            font-size: 12.5px;
-            color: var(--text-2);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .tool-btn:hover { background: var(--hover); }
         .input-row {
             display: flex;
             gap: 8px;
@@ -229,11 +217,11 @@
             flex: 1;
             border: none;
             outline: none;
-            padding: 10px 12px;
+            padding: 8px 12px;
             font-size: 15px;
             resize: none;
-            min-height: 40px;
-            max-height: 120px;
+            min-height: 44px;
+            max-height: 160px;
             font-family: inherit;
             line-height: 1.5;
         }
@@ -275,9 +263,9 @@
 
         /* 刷题卡片 */
         .quiz-card {
-            max-width: 760px;
-            margin: 0 auto 28px;
-            background: #f7f7f8;
+            max-width: 720px;
+            margin: 0 auto 32px;
+            background: var(--ai-bubble);
             border-radius: 12px;
             padding: 24px;
         }
@@ -329,7 +317,7 @@
             padding: 28px;
             width: 480px;
             max-width: 90%;
-            box-shadow: var(--shadow);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
         .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
         .modal p { font-size: 14px; line-height: 1.7; color: var(--text-2); margin-bottom: 10px; }
@@ -349,8 +337,8 @@
         @media (max-width: 900px) {
             .sidebar { display: none; }
             .input-area { width: 92%; }
-            .welcome { margin-top: 40px; }
-            .welcome h1 { font-size: 24px; }
+            .welcome { margin-top: 60px; }
+            .welcome h1 { font-size: 28px; }
             .suggest-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -358,8 +346,9 @@
 <body>
     <!-- 左侧边栏 -->
     <div class="sidebar">
+        <div class="logo">复习助手</div>
         <button class="new-chat-btn" onclick="newChat()">
-            <span>✏️</span> 新对话
+            <span>➕</span> 新对话
         </button>
         <div class="side-title">历史对话</div>
         <div class="history-item" onclick="quickAsk('请详细解释进程和线程的核心区别以及各自的适用场景')">进程与线程的核心区别</div>
@@ -410,11 +399,6 @@
 
         <!-- 输入区 -->
         <div class="input-area">
-            <div class="input-tools">
-                <button class="tool-btn" onclick="quickAsk('帮我出一道高频面试题')">🔥 高频考点</button>
-                <button class="tool-btn" onclick="startQuiz()">📖 真题练习</button>
-                <button class="tool-btn" onclick="quickAsk('这个概念是什么意思，举个例子')">💡 概念解释</button>
-            </div>
             <div class="input-row">
                 <textarea id="input" placeholder="输入你的问题，Enter发送，Shift+Enter换行..." rows="1"></textarea>
                 <button id="send" onclick="sendQuestion()">↑</button>
@@ -445,7 +429,7 @@
         // 自动调整输入框高度
         input.addEventListener('input', () => {
             input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+            input.style.height = Math.min(input.scrollHeight, 160) + 'px';
         });
 
         function cleanMd(text) {
