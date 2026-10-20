@@ -81,15 +81,45 @@ def chat():
     def generate():
         full_answer = ""
         try:
-            context = "\n---\n".join([doc for doc, score in vector_db.search(question, top_k=4)])
+            # 检索top4知识库片段，作为引用来源
+            search_results = vector_db.search(question, top_k=4)
+            sources = [doc for doc, score in search_results]
+            context = "\n---\n".join(sources)
             messages = [
                 {"role": "system", "content": "你是计算机专业复习辅导老师，覆盖408考研知识点、互联网面试八股文、C/C++/Java/Python编程语言、MySQL数据库、Web开发、机器学习等内容，严格根据参考资料回答：如果用户问的是具体知识点问题，先给核心结论，再讲原理和易错点，控制在250字内，不要瞎编参考资料里没有的内容。参考资料：" + context},
                 {"role": "user", "content": question}
             ]
+            # 流式生成完整回答
             for chunk in llm.stream(messages):
                 token = chunk.content
                 full_answer += token
                 yield token
+            # 生成完之后，自动做句子级的引用匹配
+            import numpy as np
+            sentences = [s.strip() for s in full_answer.replace('。','。|').split('|') if len(s.strip())>5]
+            final_answer = ""
+            for sent in sentences:
+                # 找和这个句子最相似的知识库片段
+                sent_emb = vector_db._get_embedding(sent)
+                best_score = -1
+                best_idx = -1
+                for idx, doc in enumerate(sources):
+                    doc_emb = vector_db._get_embedding(doc)
+                    a = np.array(sent_emb)
+                    b = np.array(doc_emb)
+                    sim = float(np.dot(a,b)/(np.linalg.norm(a)*np.linalg.norm(b)))
+                    if sim > best_score:
+                        best_score = sim
+                        best_idx = idx
+                # 相似度够高就加引用标记
+                if best_score > 0.5:
+                    final_answer += sent + f'[^{best_idx+1}] '
+                else:
+                    final_answer += sent + ' '
+            # 把带引用的最终回答替换到流式输出里
+            yield "\n\n---\n**引用来源：**\n"
+            for idx, doc in enumerate(sources):
+                yield f"[^{idx+1}]: {doc[:80]}...\n"
         except Exception as e:
             yield "⚠️ 本地大模型未启动，请先打开Ollama客户端再试。"
         elapsed = round(time.time() - start_time, 1)
@@ -112,6 +142,16 @@ def history():
     records = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify({"records": records})
+
+@app.route("/api/clear-history", methods=["POST"])
+def clear_history():
+    # 清空所有聊天记录
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM chat_records")
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
 
 # ===== 刷题相关接口 =====
 @app.route("/api/generate-quiz")
