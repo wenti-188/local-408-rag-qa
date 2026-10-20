@@ -177,13 +177,14 @@
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             position: sticky;
             top: 0;
             z-index: 50;
+            position: relative;
         }
-        .top-bar-title { font-size: 14px; font-weight: 600; }
-        .top-bar-status { font-size: 12px; color: var(--text-3); }
+        .top-bar-title { font-size: 15px; font-weight: 600; position: absolute; left: 50%; transform: translateX(-50%); }
+        .top-bar-status { font-size: 12px; color: var(--text-3); margin-left: auto; }
         .chat-container {
             flex: 1;
             overflow-y: auto;
