@@ -416,6 +416,38 @@
             font-size: 13px;
             margin-top: 12px;
         }
+        /* 关于弹窗 */
+        .modal-mask {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-mask.show { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            width: 480px;
+            max-width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .modal p { font-size: 14px; line-height: 1.7; color: var(--text-2); margin-bottom: 10px; }
+        .modal .close-btn {
+            margin-top: 20px;
+            padding: 8px 20px;
+            background: var(--user-bubble);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+        }
 
         /* 响应式适配：中小屏幕隐藏右侧边栏 */
         @media (max-width: 1200px) {
@@ -435,16 +467,16 @@
 <body>
     <!-- 左侧边栏 -->
     <div class="sidebar">
-        <button class="new-chat-btn" onclick="location.reload()">
+        <button class="new-chat-btn" onclick="newChat()">
             <span>✏️</span> 新建对话
         </button>
         <div class="side-section-title">最近对话</div>
-        <div class="history-item">进程与线程的核心区别</div>
-        <div class="history-item">TCP三次握手过程详解</div>
-        <div class="history-item">B树和B+树的差异</div>
-        <div class="history-item">数据库事务ACID特性</div>
-        <div class="history-item">2025年408真题第10题解析</div>
-        <div class="history-item">Java HashMap底层原理</div>
+        <div class="history-item" onclick="quickAsk('请详细解释进程和线程的核心区别以及各自的适用场景')">进程与线程的核心区别</div>
+        <div class="history-item" onclick="quickAsk('请解释TCP三次握手和四次挥手的完整过程，为什么需要三次握手')">TCP三次握手过程详解</div>
+        <div class="history-item" onclick="quickAsk('请对比B树和B+树的差异，以及各自的适用场景')">B树和B+树的差异</div>
+        <div class="history-item" onclick="quickAsk('请解释数据库事务ACID特性的具体含义')">数据库事务ACID特性</div>
+        <div class="history-item" onclick="quickAsk('请解析2025年408真题第10题，给出答案和详细解析')">2025年408真题第10题解析</div>
+        <div class="history-item" onclick="quickAsk('请讲解Java HashMap的底层原理和扩容机制')">Java HashMap底层原理</div>
 
         <div class="side-footer">
             <button class="side-footer-btn" onclick="startQuiz()">
@@ -453,7 +485,7 @@
             <button class="side-footer-btn" onclick="window.open('http://localhost:8000','_blank')">
                 <span>⚙️</span> API控制台
             </button>
-            <button class="side-footer-btn">
+            <button class="side-footer-btn" onclick="showAbout()">
                 <span>ℹ️</span> 关于本项目
             </button>
         </div>
@@ -535,6 +567,18 @@
         </div>
     </div>
 
+    <!-- 关于项目弹窗 -->
+    <div class="modal-mask" id="about-modal" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal">
+            <h3>关于本项目</h3>
+            <p>这是一个完全离线运行的计算机专业复习助手，不依赖任何云端API，所有模型和数据均在本地运行。</p>
+            <p><strong>技术栈：</strong>Python + Flask + FastAPI + Ollama + Qwen2.5-7B + 自研MiniVectorDB + SQLite</p>
+            <p><strong>核心能力：</strong>1820条全学科知识库、RAG语义检索、本地大模型流式生成、API开放平台、智能刷题</p>
+            <p><strong>项目地址：</strong>github.com/wenti-188/local-408-rag-qa</p>
+            <button class="close-btn" onclick="document.getElementById('about-modal').classList.remove('show')">关闭</button>
+        </div>
+    </div>
+
     <script>
         const chatBox = document.getElementById('chat');
         const input = document.getElementById('input');
@@ -572,6 +616,37 @@
         function quickAsk(q) {
             input.value = q;
             sendQuestion();
+        }
+
+        function newChat() {
+            chatBox.innerHTML = `
+                <div class="welcome" id="welcome">
+                    <h1>你好，我是你的计算机复习助手</h1>
+                    <p>408考研 · 面试八股 · 编程语言 · 数据库与Web开发</p>
+                    <div class="suggest-grid">
+                        <div class="suggest-card" onclick="quickAsk('请详细解释进程和线程的区别，以及各自的适用场景')">
+                            <div class="card-title">操作系统核心概念</div>
+                            <div class="card-desc">进程、线程、协程的区别与联系</div>
+                        </div>
+                        <div class="suggest-card" onclick="quickAsk('请解释TCP三次握手和四次挥手的过程，为什么需要三次')">
+                            <div class="card-title">计算机网络高频考点</div>
+                            <div class="card-desc">TCP连接建立与释放的完整流程</div>
+                        </div>
+                        <div class="suggest-card" onclick="quickAsk('请对比数组、链表、栈、队列的时间复杂度和适用场景')">
+                            <div class="card-title">数据结构基础</div>
+                            <div class="card-desc">常见线性结构的性能对比</div>
+                        </div>
+                        <div class="suggest-card" onclick="quickAsk('请解释数据库索引的原理，B+树为什么适合做索引')">
+                            <div class="card-title">数据库进阶</div>
+                            <div class="card-desc">索引底层实现与优化思路</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAbout() {
+            document.getElementById('about-modal').classList.add('show');
         }
 
         async function loadHistory() {
