@@ -68,7 +68,7 @@ def chat(req: ChatRequest, api_key: str = Depends(verify_api_key)):
         check_res = ollama.chat(
             model="qwen2.5:7b",
             messages=[
-                {"role": "system", "content": "判断下面用户的问题是否需要查询408考研知识点资料，只回答'是'或'否'，不要说别的。"},
+                {"role": "system", "content": "判断用户的问题是否和计算机408考研的四门课（数据结构、操作系统、计算机组成原理、计算机网络）知识点、真题相关，只要涉及专业知识点、真题题目就回答'是'，日常闲聊、无关话题回答'否'，只回答一个字，不要解释。"},
                 {"role": "user", "content": req.prompt}
             ]
         )
@@ -140,6 +140,12 @@ def dev_console():
     <h1>408本地大模型开发者控制台</h1>
     <div class="sub">完全本地运行 · Agent工具调用 · API鉴权 · Token用量统计</div>
     <div class="card">
+        <h2>在线接口测试</h2>
+        <input type="text" id="test-prompt" placeholder="输入问题，比如：什么是TCP三次握手">
+        <button onclick="testChat()">发送测试</button>
+        <div class="result" id="test-res" style="display:none;"></div>
+    </div>
+    <div class="card">
         <h2>查询我的用量</h2>
         <input type="text" id="key" placeholder="测试Key：test-key-12345">
         <button onclick="query()">查询用量</button>
@@ -168,6 +174,24 @@ def dev_console():
             res.innerHTML = '✅ 查询成功<br>累计调用：' + data.call_count + '次<br>累计消耗Token：' + data.total_tokens_used + '个';
         } catch(e) {
             res.innerHTML = '❌ 查询失败：' + e.message;
+        }
+    }
+    async function testChat() {
+        const prompt = document.getElementById('test-prompt').value.trim();
+        if (!prompt) { alert('请输入测试问题'); return; }
+        const res = document.getElementById('test-res');
+        res.style.display = 'block';
+        res.innerHTML = '正在调用模型 <span class="dots"><span></span><span></span><span></span></span>';
+        try {
+            const r = await fetch('/v1/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-API-Key': 'test-key-12345'},
+                body: JSON.stringify({prompt: prompt})
+            });
+            const data = await r.json();
+            res.innerHTML = '✅ 回答：' + data.content + '<br><br>是否调用知识库：' + (data.used_rag ? '是' : '否') + '<br>本次消耗Token：' + data.usage.total_tokens + '个';
+        } catch(e) {
+            res.innerHTML = '❌ 调用失败：' + e.message;
         }
     }
     </script>
