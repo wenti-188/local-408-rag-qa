@@ -313,6 +313,15 @@
             font-size: 13px;
             margin-top: 12px;
         }
+
+        /* 响应式适配：小屏幕隐藏侧边栏 */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .input-area { width: 92%; }
+            .welcome { margin-top: 40px; }
+            .welcome h1 { font-size: 24px; }
+            .suggest-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
