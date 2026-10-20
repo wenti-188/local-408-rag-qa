@@ -3,191 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算机专业离线复习助手</title>
+    <title>计算机离线复习助手</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family: "微软雅黑", sans-serif; }
-        body { background:#fafafa; color:#111; height:100vh; display:flex; flex-direction:column; }
-        .header { padding:20px; text-align:center; border-bottom:1px solid #eee; background:white; }
-        .header h1 { font-size:20px; font-weight:600; margin-bottom:6px; }
-        .header p { font-size:12px; color:#999; }
-        .func-bar { margin-top:12px; }
-        .func-btn { padding:8px 20px; border:1px solid #111; background:white; cursor:pointer; border-radius:4px; font-size:14px; }
-        .func-btn:hover { background:#111; color:white; }
-        .chat-container { flex:1; max-width:800px; width:90%; margin:20px auto; overflow-y:auto; padding:20px 0; }
-        .message { margin-bottom:16px; display:flex; }
-        .user-message { justify-content:flex-end; }
-        .message-bubble { max-width:75%; padding:12px 16px; border-radius:8px; line-height:1.6; font-size:15px; white-space:pre-wrap; }
-        .user-message .message-bubble { background:#111; color:white; }
-        .ai-message .message-bubble { background:white; border:1px solid #eee; }
-        .input-area { padding:20px; border-top:1px solid #eee; background:white; }
-        .input-wrapper { max-width:800px; margin:0 auto; display:flex; gap:12px; }
-        #question-input { flex:1; padding:12px 16px; border:1px solid #ddd; border-radius:6px; font-size:15px; }
-        #send-btn { padding:12px 24px; background:#111; color:white; border:none; border-radius:6px; cursor:pointer; }
-        #send-btn:disabled { background:#888; cursor:not-allowed; }
-        .elapsed-time { margin-top:8px; font-size:12px; color:#999; text-align:right; }
-        .loading-dots { display:inline-flex; gap:4px; padding:4px 0; }
-        .loading-dots span { width:6px; height:6px; border-radius:50%; background:#999; animation: bounce 1.2s infinite ease-in-out; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); opacity:0.4; }
-            40% { transform: translateY(-6px); opacity:1; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+        :root {
+            --bg: #f7f7f8;
+            --sidebar: #ffffff;
+            --border: #e5e5e7;
+            --text: #1f2329;
+            --text-2: #646a73;
+            --text-3: #8f959e;
+            --user-bubble: #1f2329;
+            --hover: #f2f3f5;
         }
-        .quiz-card { background:white; border:1px solid #111; border-radius:8px; padding:24px; margin:16px 0; }
-        .quiz-option { padding:10px; border:1px solid #ccc; border-radius:6px; margin:8px 0; cursor:pointer; }
-        .quiz-option.selected { background:#111; color:white; border-color:#111; }
-        .quiz-result { margin-top:16px; padding:12px; background:#f5f5f5; border-radius:6px; font-size:14px; }
+        body { background: var(--bg); color: var(--text); height:100vh; display:flex; overflow:hidden; }
+
+        /* 左侧边栏 - DeepSeek风格 */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        .new-chat-btn {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+            margin-bottom: 16px;
+        }
+        .new-chat-btn:hover { background: var(--hover); }
+        .side-section-title {
+            font-size: 12px;
+            color: var(--text-3);
+            padding: 0 8px 8px;
+            font-weight: 500;
+        }
+        .history-item {
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13.5px;
+            color: var(--text-2);
+            cursor: pointer;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.15s;
+        }
+        .history-item:hover { background: var(--hover); color: var(--text); }
+        .side-footer {
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .side-footer-btn {
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 13.5px;
+            color: var(--text-2);
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s;
+        }
+        .side-footer-btn:hover { background: var(--hover); }
+
+        /* 主区域 */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px 140px;
+        }
+        .chat-container::-webkit-scrollbar { width: 6px; }
+        .chat-container::-webkit-scrollbar-thumb { background: #d0d0d5; border-radius: 3px; }
+
+        /* 空状态欢迎页 - DeepSeek风格 */
+        .welcome {
+            max-width: 720px;
+            margin: 80px auto 0;
+            text-align: center;
+        }
+        .welcome h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .welcome p {
+            font-size: 16px;
+            color: var(--text-2);
+            margin-bottom: 40px;
+        }
+        .suggest-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            text-align: left;
+        }
+        .suggest-card {
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .suggest-card:hover {
+            border-color: #c9cdd4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transform: translateY(-1px);
+        }
+        .suggest-card .card-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .suggest-card .card-desc {
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        /* 消息气泡 - DeepSeek风格 */
+        .msg-wrap {
+            max-width: 760px;
+            margin: 0 auto 28px;
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--user-bubble);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .msg-user { flex-direction: row-reverse; }
+        .msg-user .msg-avatar { background: #4e5969; }
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.7;
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+        .msg-user .bubble {
+            background: var(--user-bubble);
+            color: white;
+        }
+        .msg-ai .bubble {
+            background: white;
+            border: 1px solid var(--border);
+        }
+        .elapsed {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        /* 输入区 - DeepSeek风格 */
+        .input-area {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(760px, calc(100% - 300px));
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            padding: 8px;
+        }
+        .input-tools {
+            display: flex;
+            gap: 4px;
+            padding: 4px 8px;
+        }
+        .tool-btn {
+            padding: 5px 10px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tool-btn:hover { background: var(--hover); }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        #input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 12px;
+            font-size: 15px;
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        #send {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--user-bubble);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        #send:disabled { background: #c9cdd4; cursor: not-allowed; }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-2);
+            font-size: 14px;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-2);
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.3; }
+            40% { opacity: 1; }
+        }
+
+        /* 刷题卡片 */
+        .quiz-card {
+            max-width: 760px;
+            margin: 0 auto 28px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .quiz-card h3 { font-size: 15px; line-height: 1.6; margin-bottom: 16px; font-weight: 500; }
+        .opt {
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .opt:hover { background: var(--hover); }
+        .opt.selected { background: var(--user-bubble); color: white; border-color: var(--user-bubble); }
+        .quiz-res {
+            margin-top: 16px;
+            padding: 14px;
+            background: var(--bg);
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .mini-btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>计算机专业离线复习助手</h1>
-        <p>纯本地运行 · 覆盖408考研/面试八股/编程语言全科目</p>
-        <div class="func-bar">
-            <button class="func-btn" onclick="startQuiz()">开始刷题</button>
-            <a href="http://localhost:8000" target="_blank" style="margin-left:8px;"><button class="func-btn">开发者API</button></a>
+    <!-- 左侧边栏 -->
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="location.reload()">
+            <span>✏️</span> 新建对话
+        </button>
+        <div class="side-section-title">最近对话</div>
+        <div class="history-item">进程与线程的核心区别</div>
+        <div class="history-item">TCP三次握手过程详解</div>
+        <div class="history-item">B树和B+树的差异</div>
+        <div class="history-item">数据库事务ACID特性</div>
+        <div class="history-item">2025年408真题第10题解析</div>
+        <div class="history-item">Java HashMap底层原理</div>
+
+        <div class="side-footer">
+            <button class="side-footer-btn" onclick="startQuiz()">
+                <span>📝</span> 开始刷题
+            </button>
+            <button class="side-footer-btn" onclick="window.open('http://localhost:8000','_blank')">
+                <span>⚙️</span> API控制台
+            </button>
+            <button class="side-footer-btn">
+                <span>ℹ️</span> 关于本项目
+            </button>
         </div>
     </div>
-    <div class="chat-container" id="chat-container"></div>
-    <div class="input-area">
-        <div class="input-wrapper">
-            <input type="text" id="question-input" placeholder="输入计算机相关问题，回车发送..." autofocus>
-            <button id="send-btn">发送</button>
+
+    <!-- 主聊天区 -->
+    <div class="main">
+        <div class="chat-container" id="chat">
+            <div class="welcome" id="welcome">
+                <h1>你好，我是你的计算机复习助手</h1>
+                <p>408考研 · 面试八股 · 编程语言 · 数据库与Web开发</p>
+                <div class="suggest-grid">
+                    <div class="suggest-card" onclick="quickAsk('请详细解释进程和线程的区别，以及各自的适用场景')">
+                        <div class="card-title">操作系统核心概念</div>
+                        <div class="card-desc">进程、线程、协程的区别与联系</div>
+                    </div>
+                    <div class="suggest-card" onclick="quickAsk('请解释TCP三次握手和四次挥手的过程，为什么需要三次')">
+                        <div class="card-title">计算机网络高频考点</div>
+                        <div class="card-desc">TCP连接建立与释放的完整流程</div>
+                    </div>
+                    <div class="suggest-card" onclick="quickAsk('请对比数组、链表、栈、队列的时间复杂度和适用场景')">
+                        <div class="card-title">数据结构基础</div>
+                        <div class="card-desc">常见线性结构的性能对比</div>
+                    </div>
+                    <div class="suggest-card" onclick="quickAsk('请解释数据库索引的原理，B+树为什么适合做索引')">
+                        <div class="card-title">数据库进阶</div>
+                        <div class="card-desc">索引底层实现与优化思路</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="input-area">
+            <div class="input-tools">
+                <button class="tool-btn" onclick="quickAsk('帮我出一道高频面试题')">🔥 高频考点</button>
+                <button class="tool-btn" onclick="startQuiz()">📖 真题练习</button>
+                <button class="tool-btn" onclick="quickAsk('这个概念是什么意思，举个例子')">💡 概念解释</button>
+            </div>
+            <div class="input-row">
+                <textarea id="input" placeholder="输入你的问题，Enter发送，Shift+Enter换行..." rows="1"></textarea>
+                <button id="send" onclick="sendQuestion()">↑</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const chatContainer = document.getElementById('chat-container');
-        const input = document.getElementById('question-input');
-        const sendBtn = document.getElementById('send-btn');
-        let currentQuiz = null;
+        const chatBox = document.getElementById('chat');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send');
+        const welcome = document.getElementById('welcome');
+        let quiz = null;
         let selectedOpt = null;
 
-        function cleanMarkdown(text) {
+        // 自动调整输入框高度
+        input.addEventListener('input', () => {
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        });
+
+        function cleanMd(text) {
             return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#{1,6}/g, '').replace(/`/g, '');
         }
 
-        function addMessage(text, isUser, elapsedTime) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            let html = isUser ? text : cleanMarkdown(text);
-            if (!isUser && elapsedTime !== undefined) {
-                html += `\n<div class="elapsed-time">思考耗时 ${elapsedTime} 秒</div>`;
+        function addMsg(text, isUser, elapsed) {
+            if (welcome) welcome.style.display = 'none';
+            const wrap = document.createElement('div');
+            wrap.className = `msg-wrap ${isUser ? 'msg-user' : 'msg-ai'}`;
+            let content = isUser ? text : cleanMd(text);
+            if (!isUser && elapsed !== undefined) {
+                content += `<div class="elapsed">思考耗时 ${elapsed} 秒</div>`;
             }
-            messageDiv.innerHTML = `<div class="message-bubble">${html}</div>`;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            wrap.innerHTML = `
+                <div class="msg-avatar">${isUser ? '我' : 'AI'}</div>
+                <div class="bubble">${content}</div>
+            `;
+            chatBox.appendChild(wrap);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function quickAsk(q) {
+            input.value = q;
+            sendQuestion();
         }
 
         async function loadHistory() {
-            addMessage("你好！我是你的计算机专业复习助手，不管是408考研知识点、互联网面试八股文、编程语言、数据库/Web开发问题都可以问，也可以点上面的按钮开始刷题。", false);
             try {
                 const res = await fetch('/api/history');
                 const data = await res.json();
-                const records = data.records.reverse();
-                records.forEach(record => {
-                    addMessage(record.question, true);
-                    addMessage(record.answer, false);
-                });
-            } catch (e) {}
+                if (data.records && data.records.length > 0) {
+                    welcome.style.display = 'none';
+                    data.records.reverse().forEach(r => {
+                        addMsg(r.question, true);
+                        addMsg(r.answer, false);
+                    });
+                }
+            } catch(e) {}
         }
 
         async function sendQuestion() {
             const q = input.value.trim();
             if (!q) return;
-            addMessage(q, true);
+            addMsg(q, true);
             input.value = '';
+            input.style.height = 'auto';
             sendBtn.disabled = true;
-            sendBtn.textContent = '生成中...';
-            const bubble = document.createElement('div');
-            bubble.className = 'message ai-message';
-            bubble.innerHTML = `<div class="message-bubble"></div>`;
-            chatContainer.appendChild(bubble);
-            const bubbleText = bubble.querySelector('.message-bubble');
-            bubbleText.innerHTML = '正在检索知识库、生成回答中 <div class="loading-dots"><span></span><span></span><span></span></div>';
+            const wrap = document.createElement('div');
+            wrap.className = 'msg-wrap msg-ai';
+            wrap.innerHTML = `
+                <div class="msg-avatar">AI</div>
+                <div class="bubble"></div>
+            `;
+            chatBox.appendChild(wrap);
+            const bubble = wrap.querySelector('.bubble');
+            bubble.innerHTML = `<div class="loading">正在思考 <div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
 
             const start = Date.now();
             try {
                 const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({question: q})
                 });
                 const reader = res.body.getReader();
-                const decoder = new TextDecoder();
-                let fullText = '';
+                const dec = new TextDecoder();
+                let full = '';
                 while(true) {
                     const {done, value} = await reader.read();
                     if (done) break;
-                    fullText += decoder.decode(value, {stream:true});
-                    bubbleText.innerHTML = cleanMarkdown(fullText);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    full += dec.decode(value, {stream:true});
+                    bubble.innerHTML = cleanMd(full);
+                    chatBox.scrollTop = chatBox.scrollHeight;
                 }
-                const elapsed = ((Date.now() - start)/1000).toFixed(1);
-                bubbleText.innerHTML = `${cleanMarkdown(fullText)}<div class="elapsed-time">思考耗时 ${elapsed} 秒</div>`;
-            } catch (e) {
-                bubbleText.textContent = '请求出错';
+                const elapsed = ((Date.now()-start)/1000).toFixed(1);
+                bubble.innerHTML = `${cleanMd(full)}<div class="elapsed">思考耗时 ${elapsed} 秒</div>`;
+            } catch(e) {
+                bubble.textContent = '请求出错，请检查本地服务是否启动';
             } finally {
                 sendBtn.disabled = false;
-                sendBtn.textContent = '发送';
             }
         }
 
         async function startQuiz() {
             sendBtn.disabled = true;
-            const loadingTip = document.createElement('div');
-            loadingTip.className = 'message ai-message';
-            loadingTip.innerHTML = `<div class="message-bubble">正在调用本地大模型生成题目 <div class="loading-dots"><span></span><span></span><span></span></div></div>`;
-            chatContainer.appendChild(loadingTip);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            if (welcome) welcome.style.display = 'none';
+            const wrap = document.createElement('div');
+            wrap.className = 'msg-wrap msg-ai';
+            wrap.innerHTML = `
+                <div class="msg-avatar">AI</div>
+                <div class="bubble"><div class="loading">正在生成题目 <div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+            `;
+            chatBox.appendChild(wrap);
+            chatBox.scrollTop = chatBox.scrollHeight;
             try {
                 const res = await fetch('/api/generate-quiz');
-                loadingTip.remove();
-                currentQuiz = await res.json();
-                if (currentQuiz.error) { alert("题目生成失败，请重试"); return; }
+                wrap.remove();
+                quiz = await res.json();
+                if (quiz.error) { alert("题目生成失败，请重试"); return; }
                 const quizDiv = document.createElement('div');
                 quizDiv.className = 'quiz-card';
-                let optionsHtml = '';
-                for (let opt of ['A','B','C','D']) {
-                    optionsHtml += `<div class="quiz-option" data-opt="${opt}" onclick="selectOption(this)">${opt}. ${currentQuiz.options[opt]}</div>`;
+                let opts = '';
+                for (let o of ['A','B','C','D']) {
+                    opts += `<div class="opt" data-o="${o}" onclick="pickOpt(this)">${o}. ${quiz.options[o]}</div>`;
                 }
                 quizDiv.innerHTML = `
-                    <h3 style="margin-bottom:16px; line-height:1.5;">${currentQuiz.question}</h3>
-                    ${optionsHtml}
-                    <div id="quiz-result" class="quiz-result" style="display:none;"></div>
-                    <button class="func-btn" id="submit-quiz-btn" style="margin-top:16px;" onclick="submitQuiz()">提交答案</button>
+                    <h3>${quiz.question}</h3>
+                    ${opts}
+                    <div id="quiz-res" class="quiz-res" style="display:none;"></div>
+                    <button class="mini-btn" id="submit-btn" onclick="submitQuiz()">提交答案</button>
                 `;
-                chatContainer.appendChild(quizDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            } catch (e) {
-                alert("题目生成失败，请重试");
+                chatBox.appendChild(quizDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch(e) {
+                alert("题目生成失败");
             } finally {
                 sendBtn.disabled = false;
             }
         }
 
-        function selectOption(el) {
-            document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+        function pickOpt(el) {
+            document.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
-            selectedOpt = el.dataset.opt;
+            selectedOpt = el.dataset.o;
         }
 
         async function submitQuiz() {
             if (!selectedOpt) { alert("请先选一个选项"); return; }
-            document.getElementById('submit-quiz-btn').disabled = true;
-            const resultDiv = document.getElementById('quiz-result');
-            resultDiv.style.display = 'block';
-            const isCorrect = (selectedOpt === currentQuiz.correct_answer);
-            if (isCorrect) {
-                resultDiv.innerHTML = `<div>✅ 回答正确！</div><div style="margin-top:8px; color:#555">解析：${currentQuiz.explanation}</div>`;
-            } else {
-                resultDiv.innerHTML = `<div>❌ 回答错误，正确答案是 ${currentQuiz.correct_answer}</div><div style="margin-top:8px; color:#555">解析：${currentQuiz.explanation}</div>`;
-            }
+            document.getElementById('submit-btn').disabled = true;
+            const res = document.getElementById('quiz-res');
+            res.style.display = 'block';
+            const right = selectedOpt === quiz.correct_answer;
+            res.innerHTML = right
+                ? `<div>✅ 回答正确！</div><div style="margin-top:8px">解析：${quiz.explanation}</div>`
+                : `<div>❌ 回答错误，正确答案是 ${quiz.correct_answer}</div><div style="margin-top:8px">解析：${quiz.explanation}</div>`;
             selectedOpt = null;
         }
 
-        sendBtn.addEventListener('click', sendQuestion);
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendQuestion(); });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendQuestion();
+            }
+        });
         loadHistory();
     </script>
 </body>
