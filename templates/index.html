@@ -170,10 +170,24 @@
             flex-direction: column;
             position: relative;
         }
+        .top-bar {
+            padding: 14px 32px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .top-bar-title { font-size: 14px; font-weight: 600; }
+        .top-bar-status { font-size: 12px; color: var(--text-3); }
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 40px 20px 140px;
+            padding: 20px 20px 140px;
         }
         .chat-container::-webkit-scrollbar { width: 6px; }
         .chat-container::-webkit-scrollbar-thumb { background: #d0d0d5; border-radius: 3px; }
@@ -447,6 +461,10 @@
 
     <!-- 主聊天区 -->
     <div class="main">
+        <div class="top-bar">
+            <div class="top-bar-title">计算机专业离线复习助手</div>
+            <div class="top-bar-status">v1.0 · 完全离线运行</div>
+        </div>
         <div class="chat-container" id="chat">
             <div class="welcome" id="welcome">
                 <h1>你好，我是你的计算机复习助手</h1>
