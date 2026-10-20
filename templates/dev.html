@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者控制台 - 408本地大模型平台</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: "微软雅黑", sans-serif; }
+        body { background:#fafafa; color:#111; min-height:100vh; padding:40px 20px; }
+        .container { max-width:700px; margin:0 auto; }
+        .header { text-align:center; margin-bottom:32px; }
+        .header h1 { font-size:22px; margin-bottom:8px; }
+        .header p { font-size:13px; color:#999; }
+        .card { background:white; border:1px solid #eee; border-radius:8px; padding:24px; margin-bottom:20px; }
+        .card h2 { font-size:16px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #eee; }
+        .key-input { width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-size:14px; margin:8px 0; }
+        .btn { padding:10px 20px; background:#111; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:8px; }
+        .usage-result { margin-top:16px; padding:12px; background:#f5f5f5; border-radius:6px; font-size:14px; line-height:1.8; }
+        .loading-dots { display:inline-flex; gap:4px; padding:4px 0; margin-left:8px; }
+        .loading-dots span { width:6px; height:6px; border-radius:50%; background:#999; animation: bounce 1.2s infinite ease-in-out; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); opacity:0.4; }
+            40% { transform: translateY(-6px); opacity:1; }
+        }
+        .back-link { text-align:center; margin-top:24px; }
+        .back-link a { color:#111; font-size:14px; text-decoration:none; border-bottom:1px solid #111; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>408本地大模型开发者控制台</h1>
+            <p>完全本地运行 · API Key鉴权 · Token用量统计</p>
+        </div>
+        <div class="card">
+            <h2>查询我的用量</h2>
+            <input type="text" class="key-input" id="api-key" placeholder="输入你的API Key，测试Key：test-key-12345">
+            <button class="btn" onclick="queryUsage()">查询用量</button>
+            <div id="usage-result" class="usage-result" style="display:none;"></div>
+        </div>
+        <div class="card">
+            <h2>接口使用说明</h2>
+            <p style="font-size:14px; line-height:2; color:#333;">
+                1.  聊天接口地址：POST http://localhost:8000/v1/chat<br>
+                2.  请求头需要带：X-API-Key: 你的Key<br>
+                3.  请求体格式：{"prompt": "你要问的问题"}<br>
+                4.  返回结果包含回答内容和本次调用消耗的Token数
+            </p>
+        </div>
+        <div class="back-link">
+            <a href="http://localhost">← 返回复习助手</a>
+        </div>
+    </div>
+    <script>
+        async function queryUsage() {
+            const key = document.getElementById('api-key').value.trim();
+            if (!key) { alert('请输入API Key'); return; }
+            const resDiv = document.getElementById('usage-result');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = '正在查询用量 <div class="loading-dots"><span></span><span></span><span></span></div>';
+            try {
+                const res = await fetch('http://localhost:8000/v1/usage', {
+                    headers: {'X-API-Key': key}
+                });
+                if (!res.ok) { throw new Error('无效的API Key'); }
+                const data = await res.json();
+                resDiv.innerHTML = `✅ 查询成功<br>累计调用次数：${data.call_count} 次<br>累计消耗Token：${data.total_tokens_used} 个`;
+            } catch (e) {
+                resDiv.innerHTML = `❌ 查询失败：${e.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
